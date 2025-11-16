@@ -1,0 +1,52 @@
+# Dockerfile.frontend
+
+# Stage 1: Build the React application
+FROM node:18-alpine as build
+
+WORKDIR /app
+
+# Install dependencies
+# Embedding package.json content here for simplicity
+RUN echo '{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^1.6.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": ["react-app","react-app/jest"]
+  },
+  "browserslist": {
+    "production": [">0.2%","not dead","not op_mini all"],
+    "development": ["last 1 chrome version","last 1 firefox version","last 1 safari version"]
+  }
+}' > package.json
+
+RUN npm install
+
+COPY ./frontend/src ./src
+COPY ./frontend/public ./public
+
+RUN npm run build
+
+# Stage 2: Serve the application using a lightweight web server
+FROM nginx:stable-alpine
+
+# Copy the built assets from the 'build' stage
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# When the container starts, nginx will serve the static files
+CMD ["nginx", "-g", "daemon off;"]
