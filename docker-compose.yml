@@ -1,0 +1,28 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount the backend code for live reloading during development
+      - ./backend/app:/app
+    environment:
+      # For production, use a .env file or other secret management
+      - OPENAI_API_KEY=your_openai_api_key_here
+    container_name: summary-eval-backend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    container_name: summary-eval-frontend
